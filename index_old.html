@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Are We Browser Yet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+    <div class="full-container">
+        <p>Supported CSS-Properties that are loaded on more than 5% of webpages are:
+        <div id="stat"></div>
+        <div>Servo supported features/top used features (all features)</div>
+        </p>
+        <table id="list">
+            <tr>
+                <th class="property">Property</th>
+                <th class="percent_value">Percentage</th>
+                <th class="servo_support">Supported by Servo</th>
+                <th class="relevant_spec">Relevant Spec</th>
+            </tr>
+        </table>
+    </div>
+</body>
+
+<script>
+    const googles_css_popularity_url = "https://chromestatus.com/data/csspopularity";
+    const servo_css_properties_url = "https://doc.servo.org/stylo/css-properties.html";
+    const w3c_css_properties_url = "all-properties.en.json";
+    // const google_feature_popularity_url = "https://chromestatus.com/data/featurepopularity";
+    // const servo_feature_url = "https://doc.servo.org/apis.html";
+
+    list_element = document.getElementById("list");
+    stat_element = document.getElementById("stat");
+
+    async function get_data() {
+        let googles_css_popularity_promise = fetch(googles_css_popularity_url)
+            .then(response => response.json());
+        let servo_css_properties_promise = fetch(servo_css_properties_url)
+            .then(response => response.text());
+        let w3c_css_properties_promise = fetch(w3c_css_properties_url)
+            .then(response => response.json());
+
+        const resolved_data = await Promise.allSettled([googles_css_popularity_promise, servo_css_properties_promise, w3c_css_properties_promise]);
+
+        const googles_resolved_data = resolved_data[0].value;
+        const servo_resolved_data = parse_table_from_HTML(resolved_data[1].value);
+        const w3c_resolved_data = resolved_data[2].value;
+
+        return [googles_resolved_data, servo_resolved_data, w3c_resolved_data];
+    }
+
+    function parse_table_from_HTML(htmlString) {
+        // Create a DOM parser to parse the HTML string
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlString, 'text/html');
+
+        // Select all <table> in the parsed HTML
+        // currently there are two tables in servo_css_properties page
+        const tables = doc.querySelectorAll('table');
+        const data = [];
+        for (const table of tables) {
+            // Get all rows of the table
+            const rows = Array.from(table.querySelectorAll('tr'));
+
+            if (rows.length === 0) {
+                return { error: 'No rows found in the table' };
+            }
+
+            // Assume the first row contains headers
+            const headers = Array.from(rows[0].querySelectorAll('td, th')).map(header => header.textContent.trim());
+
+            // Process remaining rows as data and add to the data array
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                const rowData = Array.from(row.querySelectorAll('td, th')).map(cell => cell.textContent.trim());
+                const rowObject = {};
+                for (let j = 0; j < headers.length; j++) {
+                    rowObject[headers[j]] = rowData[j];
+                }
+                data.push(rowObject);
+            }
+        }
+
+        return data;
+    }
+
+    async function build_page() {
+        const data = await get_data();
+        const google_data = data[0];
+        const servo_data_raw = data[1];
+        const w3c_data_object = data[2];
+        let spec_data = new Map();
+
+        for (var i = 0; i < w3c_data_object.length; i++) {
+            const entry = w3c_data_object[i];
+            const property_name = entry.property;
+            if (!spec_data.has(property_name)) {
+                spec_data.set(property_name, [entry]);
+            } else {
+                spec_data.get(property_name).push(entry);
+            }
+        }
+        // Get a list of supported css names
+        let servo_data = servo_data_raw.map(element => element["Name"]).filter(element => element !== undefined);
+
+        let correlated_data = google_data.filter(element =>
+            !element.property_name.startsWith("webkit-") && !element.property_name.startsWith("alias-")
+        ).map(element => {
+            element.servo_supports = servo_data.includes(element.property_name);
+            if (spec_data.has(element.property_name))
+                element.specs = spec_data.get(element.property_name);
+            return element;
+        });
+
+        correlated_data.forEach(element => {
+            list_element.append(generate_list_entry(element));
+        });
+
+        number_of_properties_over_five_percent = correlated_data.filter(data => data.day_percentage >= 0.05);
+        number_of_supported_properties_over_five_percent = number_of_properties_over_five_percent.filter(data => data.servo_supports).length;
+
+        stat_element.innerText = number_of_supported_properties_over_five_percent + " / " + number_of_properties_over_five_percent.length + " (" + correlated_data.length + ")";
+    }
+
+    function generate_list_entry(data) {
+        let entry = document.createElement("tr");
+
+        let property = document.createElement("td");
+        property.textContent = data.property_name;
+        property.classList.add("property");
+        entry.append(property);
+
+        let bar_value = document.createElement("td");
+        bar_value.classList.add("percent_value");
+        bar_value.innerText = (data.day_percentage * 100).toFixed(2) + "%";
+        entry.append(bar_value);
+
+        let servo_support = document.createElement("td");
+        servo_support.classList.add("servo_support");
+        if(data.servo_supports)
+            servo_support.innerText = "Yes";
+        entry.append(servo_support);
+
+        if (data.hasOwnProperty("specs")) {
+            let spec_links = document.createElement("td");
+            spec_links.classList.add("spec-links");
+            for (var i = 0; i < data.specs.length; i++) {
+                const spec = data.specs[i];
+                let link = document.createElement("a");
+                link.href = spec.url;
+                link.innerText = spec.status;
+                link.title = spec.title;
+                link.target = "_blank";
+
+                let li = document.createElement("li");
+                li.classList.add("spec-" + spec.status);
+                li.append(link);
+                spec_links.append(li);
+            }
+            entry.append(spec_links);
+        }
+
+        return entry;
+    }
+
+    build_page();
+
+</script>
+
+</html>
