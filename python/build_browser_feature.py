@@ -21,37 +21,40 @@ def read_json_file(file_path):
             exposure = test.get("exposure", "N/A")
 
             parts = name.split(".")
-            group = parts[1] if len(parts) > 1 else "Misc"
+            level1 = parts[1] if len(parts) > 1 else "Misc"
+            level2 = parts[2] if len(parts) > 2 else "_root"
 
-            grouped[group].append((name, result, exposure, url))
+            grouped[level1][level2].append((name, result, exposure, url))
 
     # Generate Markdown output
     md_lines = ["# API Compatibility Results\n"]
+    for level1 in sorted(grouped.keys()):
+        md_lines.append(f"## `{level1}`\n")
 
-    for group in sorted(grouped):
-        md_lines.append(f"### `{group}` APIs\n")
-        md_lines.append("| API Feature | Result | Exposure | Relevant Link |")
-        md_lines.append("|-------------|--------|----------|---------------|")
+        for level2 in sorted(grouped[level1].keys()):
+            md_lines.append(f"### `{level2}`\n")
+            md_lines.append("| API Feature | Result | Exposure | Relevant Link |")
+            md_lines.append("|-------------|--------|----------|---------------|")
 
-        for name, result, exposure, url in grouped[group]:
-            icon = "✅" if result is True else "❌" if result is False else "⚠️"
+            for name, result, exposure, url in grouped[level1][level2]:
+                icon = "✅" if result is True else "❌" if result is False else "⚠️"
+                second_layer_name = ".".join(name.split["."][1:])
+                url = get_url_from_bcd(name)
+                spec_links = []
+                if url and url[0]:
+                    spec_links.append(f"[MDN]({url[0]})")
+                if url and isinstance(url[1], list):
+                    i = 0
+                    for spec in url[1]:
+                        spec_links.append(f"[SPEC{i}]({spec})")
+                        i += 1
+                elif url and url[1]:
+                    spec_links.append(f"[SPEC]({url[1]})")
+                links = ", ".join(spec_links) if len(spec_links) > 0 else "N/A"
 
-            url = get_url_from_bcd(name)
-            spec_links = []
-            if url and url[0]:
-                spec_links.append(f"[MDN]({url[0]})")
-            if url and isinstance(url[1], list):
-                i = 0
-                for spec in url[1]:
-                    spec_links.append(f"[SPEC{i}]({spec})")
-                    i += 1
-            elif url and url[1]:
-                spec_links.append(f"[SPEC]({url[1]})")
-            links = ", ".join(spec_links) if len(spec_links) > 0 else "N/A"
+                md_lines.append(f"| `{second_layer_name}` | {icon} | {exposure} | {links} |")
 
-            md_lines.append(f"| `{name}` | {icon} | {exposure} | {links} |")
-
-        md_lines.append("")  # Blank line between groups
+            md_lines.append("")  # Blank line between groups
 
     # Save output
     with open("./content/metrics/browser-feature.md", "a", encoding="utf-8") as f:
