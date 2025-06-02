@@ -58,6 +58,10 @@ def get_spec_url_from_bcd(api_path):
     parts = api_path.split(".")[1:]  # skip 'api' prefix
     if not parts:
         return None
+    # Construct the path with all parts joined by '/' except the last part
+    # which will be the key used to find spec_url in the BCD JSON
+    key = parts[-1]
+    parts = parts[:-1]  # Remove the last part for the directory structure
     root_file = "/".join(parts) + ".json"
     bcd_path = os.path.join(BCD_REPO_PATH, root_file)
     print(f"bcd_path")
@@ -65,8 +69,9 @@ def get_spec_url_from_bcd(api_path):
     if not os.path.isfile(bcd_path):
         spec_cache[api_path] = None
         return None
-
+        print(f"path {bcd_path} not found, skipping")
     try:
+        print(f"path {bcd_path} found")
         with open(bcd_path, "r", encoding="utf-8") as f:
             bcd_data = json.load(f)
 
