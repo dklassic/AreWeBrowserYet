@@ -38,7 +38,7 @@ def read_json_file(file_path):
 
             url = get_url_from_bcd(name)
             spec_links = []
-            if url and url[0]
+            if url and url[0]:
                 spec_links.append(f"[MDN]({url[0]})")
             if url and isinstance(url[1], list):
                 i = 0
@@ -47,7 +47,7 @@ def read_json_file(file_path):
                     i += 1
             elif url and url[1]:
                 spec_links.append(f"[SPEC]({url[1]})")
-            links = ", ".join(spec_links) if spec_links else "N/A"
+            links = ", ".join(spec_links) if len(spec_links) > 0 else "N/A"
 
             md_lines.append(f"| `{name}` | {icon} | {exposure} | {links} |")
 
