@@ -40,7 +40,7 @@ def read_json_file(file_path):
             mdn_md = f"[MDN]({url[0]})" if url and url[0] else "-"
             spec_md = ""
             i = 0
-            if url and url[1] is list:
+            if url and isinstance(url[1], list):
                 for spec in url[1]:
                     spec_md += f"[SPEC{i}]({spec})"
                     i += 1
