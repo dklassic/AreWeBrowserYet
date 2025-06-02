@@ -4,7 +4,7 @@ import os
 import sys
 
 # === CONFIG: Path to your local BCD repo clone ===
-BCD_REPO_PATH = "./browser-compat-data/api"
+BCD_REPO_PATH = "./browser-compat-data/"
 # Cache spec URLs to avoid redundant reads
 spec_cache = {}
 
@@ -47,7 +47,7 @@ def read_json_file(file_path):
         md_lines.append("")  # Blank line between groups
 
     # Save output
-    with open("./content/metrics/browser-feature.md", "w", encoding="utf-8") as f:
+    with open("./content/metrics/browser-feature.md", "a", encoding="utf-8") as f:
         f.write("\n".join(md_lines))
 
 def get_spec_url_from_bcd(api_path):
@@ -55,7 +55,7 @@ def get_spec_url_from_bcd(api_path):
     if api_path in spec_cache:
         return spec_cache[api_path]
 
-    parts = api_path.split(".")[1:]  # skip 'api' prefix
+    parts = api_path.split(".")  # skip 'api' prefix
     if not parts:
         return None
     # Construct the path with all parts joined by '/' except the last part
@@ -64,26 +64,23 @@ def get_spec_url_from_bcd(api_path):
     parts = parts[:-1]  # Remove the last part for the directory structure
     root_file = "/".join(parts) + ".json"
     bcd_path = os.path.join(BCD_REPO_PATH, root_file)
-    print(f"bcd_path")
 
     if not os.path.isfile(bcd_path):
         spec_cache[api_path] = None
         return None
-        print(f"path {bcd_path} not found, skipping")
     try:
-        print(f"path {bcd_path} found")
         with open(bcd_path, "r", encoding="utf-8") as f:
             bcd_data = json.load(f)
 
-        current = bcd_data.get("api", {})
-        for part in parts:
+        current = bcd_data.get(parts[0], {})
+        for part in parts[1:]:
             if part in current:
                 current = current[part]
             else:
                 current = None
                 break
 
-        spec_url = current.get("spec_url") if isinstance(current, dict) else None
+        spec_url = current.get("__compat").get("spec_url")
         spec_cache[api_path] = spec_url
         return spec_url
 
