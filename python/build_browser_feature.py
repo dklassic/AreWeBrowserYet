@@ -5,8 +5,6 @@ import sys
 
 # === CONFIG: Path to your local BCD repo clone ===
 BCD_REPO_PATH = "./browser-compat-data/"
-# Cache spec URLs to avoid redundant reads
-spec_cache = {}
 
 def read_json_file(file_path):
     # Load test results JSON file
@@ -29,21 +27,21 @@ def read_json_file(file_path):
             grouped[group].append((name, result, exposure, url))
 
     # Generate Markdown output
-    md_lines = ["# API Compatibility Results (Grouped + Spec URL)\n"]
+    md_lines = ["# API Compatibility Results\n"]
 
     for group in sorted(grouped):
         md_lines.append(f"### `{group}` APIs\n")
-        md_lines.append("| API Feature | Result | Exposure | MDN URL | Spec URL |")
-        md_lines.append("|-------------|--------|----------|---------|----------|")
+        md_lines.append("| API Feature | Result | Exposure | Relevant Link |")
+        md_lines.append("|-------------|--------|----------|---------------|")
 
         for name, result, exposure, url in grouped[group]:
             icon = "✅" if result is True else "❌" if result is False else "⚠️"
 
-            (mdn_url, spec_url) = get_url_from_bcd(name)
-            spec_md = f"[SPEC]({spec_url})" if spec_url else "-"
-            mdn_md = f"[MDN]({mdn_url})" if mdn_url else "-"
+            url = get_url_from_bcd(name)
+            mdn_md = f"[MDN]({url[2]})" if url and url[2] else "-"
+            spec_md = f"[SPEC]({url[1]})" if url and url[1] else "-"
 
-            md_lines.append(f"| `{name}` | {icon}| {mdn_md} | {spec_md} |")
+            md_lines.append(f"| `{name}` | {icon}| {exposure} | {mdn_md}, {spec_md} |")
 
         md_lines.append("")  # Blank line between groups
 
@@ -67,7 +65,6 @@ def get_url_from_bcd(api_path):
     bcd_path = os.path.join(BCD_REPO_PATH, root_file)
 
     if not os.path.isfile(bcd_path):
-        spec_cache[api_path] = None
         return None
     try:
         with open(bcd_path, "r", encoding="utf-8") as f:
@@ -83,12 +80,10 @@ def get_url_from_bcd(api_path):
 
         mdn_url = current.get("__compat").get("mdn_url")
         spec_url = current.get("__compat").get("spec_url")
-        spec_cache[api_path] = spec_url
         return (spec_url, mdn_url)
 
     except Exception as e:
         print(f"Error reading BCD for {api_path}: {e}")
-        spec_cache[api_path] = None
         return None
 
 def main(file_path):
