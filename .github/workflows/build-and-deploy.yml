@@ -138,7 +138,7 @@ jobs:
 
       - name: Build MDN BCD Page
         run: |
-          pip install requests
+          git clone https://github.com/mdn/browser-compat-data/.git
           python ./python/build_mdn_bcd.py ${{ github.workspace }}/collector/download/${{ env.RESULT_FILENAME }}
 
       - name: Build Test
