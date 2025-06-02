@@ -61,13 +61,81 @@ jobs:
         run: |
           wget https://chromestatus.com/data/csspopularity -O ./static/google-css-popularity.json
 
-      
+      # Prepare MDN BCD collector
+      - name: Set LIBCLANG_PATH env
+        run: echo "LIBCLANG_PATH=/usr/lib/llvm-14/lib" >> $GITHUB_ENV
+      - name: Clone Repository
+        uses: actions/checkout@v4
+      - name: Clone mdn-bcd-collector
+        uses: actions/checkout@v4
+        with:
+          repository: openwebdocs/mdn-bcd-collector
+          submodules: true
+          path: collector
+      - name: Clone Servo
+        uses: actions/checkout@v4
+        with:
+          repository: servo/servo
+          path: servo
+      - name: Setup NodeJS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "0.5.6"
+      - name: Build Servo
+        run: |
+          cd servo
+          ./mach bootstrap
+          ./mach build
+      - name: Run MDN bcd collector in background
+        run: |
+          cd collector
+          npm ci
+          nohup npm run dev &
+
+          retries=15
+          count=0
+          until curl -s http://localhost:5200 > /dev/null; do
+            if [ $count -ge $retries ]; then
+              echo "Server did not start after $retries attempts."
+              exit 1
+            fi
+            echo "Retry $((count + 1))/$retries: Server not ready, retrying in 2 seconds..."
+            sleep 2
+            count=$((count + 1))
+          done
+
+          echo "Server is up!"
+      - name: Run test and generate report
+        run: |
+          cd servo
+          # Run the test in headless modeand save the output to a variable
+          OUTPUT=$(timeout 10m ./mach run http://localhost:5200/tests/ --headless --userscripts="${{ github.workspace }}/scripts/")
+
+          # Extract the line with "RESULT_FILENAME:" and isolate the filename
+          FILENAME=$(echo "$OUTPUT" | grep "RESULT_FILENAME:" | sed 's/RESULT_FILENAME: //')
+
+          echo "Result filename: $FILENAME"
+
+          # Save to environment for later steps
+          echo "RESULT_FILENAME=$FILENAME" >> $GITHUB_ENV
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.RESULT_FILENAME }}
+          path: ${{ github.workspace }}/collector/download/${{ env.RESULT_FILENAME }}
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12' 
+          
       - name:
         run: |
           python ./python/build_css.py
+          python ./python/build_mdn_bcd.py ${{ env.RESULT_FILENAME }}
 
       - name: Build Test
         if: github.ref != 'refs/heads/main' && !contains(github.event.pull_request.labels.*.name, 'preview-build')
