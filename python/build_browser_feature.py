@@ -37,21 +37,19 @@ def read_json_file(file_path):
             icon = "✅" if result is True else "❌" if result is False else "⚠️"
 
             url = get_url_from_bcd(name)
-            mdn_md = f"[MDN]({url[0]})" if url and url[0] else "-"
-            spec_md = ""
-            i = 0
+            spec_links = []
+            if url and url[0]
+                spec_links.append(f"[MDN]({url[0]})")
             if url and isinstance(url[1], list):
+                i = 0
                 for spec in url[1]:
-                    spec_md += f"[SPEC{i}]({spec})"
+                    spec_links.append(f"[SPEC{i}]({spec})")
                     i += 1
-                    if i < len(url[1]):
-                        spec_md += ", "
             elif url and url[1]:
-                spec_md = f"[SPEC]({url[1]})" if url and url[1] else "-"
-            else:
-                spec_md = "-"
+                spec_links.append(f"[SPEC]({url[1]})")
+            links = ", ".join(spec_links) if spec_links else "N/A"
 
-            md_lines.append(f"| `{name}` | {icon}| {exposure} | {mdn_md}, {spec_md} |")
+            md_lines.append(f"| `{name}` | {icon} | {exposure} | {links} |")
 
         md_lines.append("")  # Blank line between groups
 
