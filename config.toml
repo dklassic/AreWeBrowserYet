@@ -159,7 +159,8 @@ links = [
 		# { url = "@/mods/index.md", name = "Mods" }
 	# ] },
 	# { url = "@/blog/_index.md", name = "Blog" },
-	{ url = "@/metrics/css.md", name = "CSS Coverage" },
+	{ url = "@/metrics/css.md", name = "CSS Popularity Coverage" },
+	{ url = "@/metrics/browser-feature.md", name = "Browser Feature Coverage" },
 	# { url = "https://daudix.one/coffee/", name = "Coffee" }
 ]
 
