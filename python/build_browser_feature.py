@@ -33,16 +33,17 @@ def read_json_file(file_path):
 
     for group in sorted(grouped):
         md_lines.append(f"### `{group}` APIs\n")
-        md_lines.append("| API Feature | Result | Exposure | Source | Spec URL |")
-        md_lines.append("|-------------|--------|----------|--------|----------|")
+        md_lines.append("| API Feature | Result | Exposure | MDN URL | Spec URL |")
+        md_lines.append("|-------------|--------|----------|---------|----------|")
 
         for name, result, exposure, url in grouped[group]:
             icon = "✅" if result is True else "❌" if result is False else "⚠️"
 
-            spec_url = get_spec_url_from_bcd(name)
-            spec_md = f"[spec]({spec_url})" if spec_url else "-"
+            (mdn_url, spec_url) = get_url_from_bcd(name)
+            spec_md = f"[SPEC]({spec_url})" if spec_url else "-"
+            mdn_md = f"[MDN]({mdn_url})" if mdn_url else "-"
 
-            md_lines.append(f"| `{name}` | {icon}| {spec_md} |")
+            md_lines.append(f"| `{name}` | {icon}| {mdn_md} | {spec_md} |")
 
         md_lines.append("")  # Blank line between groups
 
@@ -50,7 +51,7 @@ def read_json_file(file_path):
     with open("./content/metrics/browser-feature.md", "a", encoding="utf-8") as f:
         f.write("\n".join(md_lines))
 
-def get_spec_url_from_bcd(api_path):
+def get_url_from_bcd(api_path):
     """Look up the spec_url for a given API path using a local BCD repo."""
     if api_path in spec_cache:
         return spec_cache[api_path]
@@ -80,9 +81,10 @@ def get_spec_url_from_bcd(api_path):
                 current = None
                 break
 
+        mdn_url = current.get("__compat").get("mdn_url")
         spec_url = current.get("__compat").get("spec_url")
         spec_cache[api_path] = spec_url
-        return spec_url
+        return (spec_url, mdn_url)
 
     except Exception as e:
         print(f"Error reading BCD for {api_path}: {e}")

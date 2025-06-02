@@ -139,7 +139,7 @@ jobs:
       - name: Build MDN BCD Page
         run: |
           git clone https://github.com/mdn/browser-compat-data.git
-          python ./python/build_mdn_bcd.py ${{ github.workspace }}/collector/download/${{ env.RESULT_FILENAME }}
+          python ./python/build_browser_feature.py ${{ github.workspace }}/collector/download/${{ env.RESULT_FILENAME }}
 
       - name: Build Test
         if: github.ref != 'refs/heads/main' && !contains(github.event.pull_request.labels.*.name, 'preview-build')
