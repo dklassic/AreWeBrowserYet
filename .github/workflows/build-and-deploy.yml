@@ -132,9 +132,13 @@ jobs:
         with:
           python-version: '3.12' 
           
-      - name:
+      - name: Build CSS Page
         run: |
           python ./python/build_css.py
+
+      - name: Build MDN BCD Page
+        run: |
+          pip install requests
           python ./python/build_mdn_bcd.py ${{ env.RESULT_FILENAME }}
 
       - name: Build Test
