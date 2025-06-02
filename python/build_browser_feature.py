@@ -37,7 +37,7 @@ def read_json_file(file_path):
             icon = "✅" if result is True else "❌" if result is False else "⚠️"
 
             url = get_url_from_bcd(name)
-            mdn_md = f"[MDN]({url[2]})" if url and url[2] else "-"
+            mdn_md = f"[MDN]({url[0]})" if url and url[0] else "-"
             spec_md = f"[SPEC]({url[1]})" if url and url[1] else "-"
 
             md_lines.append(f"| `{name}` | {icon}| {exposure} | {mdn_md}, {spec_md} |")
@@ -75,7 +75,7 @@ def get_url_from_bcd(api_path):
 
         mdn_url = current.get("__compat").get("mdn_url")
         spec_url = current.get("__compat").get("spec_url")
-        return (spec_url, mdn_url)
+        return (mdn_url, spec_url)
 
     except Exception as e:
         print(f"Error reading BCD for {api_path}: {e}")
