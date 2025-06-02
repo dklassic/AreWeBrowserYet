@@ -2,6 +2,7 @@ import json
 from collections import defaultdict
 import requests
 import os
+import sys
 
 
 def read_json_file(file_path):
