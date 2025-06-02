@@ -139,7 +139,7 @@ jobs:
       - name: Build MDN BCD Page
         run: |
           pip install requests
-          python ./python/build_mdn_bcd.py ${{ env.RESULT_FILENAME }}
+          python ./python/build_mdn_bcd.py ${{ github.workspace }}/collector/download/${{ env.RESULT_FILENAME }}
 
       - name: Build Test
         if: github.ref != 'refs/heads/main' && !contains(github.event.pull_request.labels.*.name, 'preview-build')
