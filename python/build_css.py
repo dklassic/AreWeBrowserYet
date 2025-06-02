@@ -26,7 +26,7 @@ def generate_line(data):
     if data['servo_supports'] == "supported":
         line += f" | ✅"
     elif data['servo_supports'] == "experimental":
-        line += f" | 🧪"
+        line += f" | ⚠️"
     else:
         line += f" | ❌"
     # display the relevant specs for the property

@@ -3,7 +3,6 @@ from collections import defaultdict
 import os
 import sys
 
-# === CONFIG: Path to your local BCD repo clone ===
 BCD_REPO_PATH = "./browser-compat-data/"
 
 def read_json_file(file_path):
@@ -50,10 +49,6 @@ def read_json_file(file_path):
         f.write("\n".join(md_lines))
 
 def get_url_from_bcd(api_path):
-    """Look up the spec_url for a given API path using a local BCD repo."""
-    if api_path in spec_cache:
-        return spec_cache[api_path]
-
     parts = api_path.split(".")  # skip 'api' prefix
     if not parts:
         return None
