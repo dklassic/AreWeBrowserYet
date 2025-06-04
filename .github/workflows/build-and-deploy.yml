@@ -43,29 +43,10 @@ jobs:
             
             <!-- workflow-preview-build-label -->
 
-      - name: Download CSS properties JSON From W3
-        run: |
-          wget https://www.w3.org/Style/CSS/all-properties.en.json -O ./static/w3-all-properties.json
-
-      - name: Download Servo supported CSS properties
-        run: |
-          wget https://doc.servo.org/stylo/css-properties.json -O ./static/servo-css-properties.json
-
-
-      # Need another way of retrieving default Servo preference
-      # - name: Download Servo default prefs.json
-      #   run: |
-      #     wget https://raw.githubusercontent.com/servo/servo/refs/heads/main/resources/prefs.json -O ./static/servo-default-pref.json
-
-      - name: Download Google supported CSS properties
-        run: |
-          wget https://chromestatus.com/data/csspopularity -O ./static/google-css-popularity.json
 
       # Prepare MDN BCD collector
       - name: Set LIBCLANG_PATH env
         run: echo "LIBCLANG_PATH=/usr/lib/llvm-14/lib" >> $GITHUB_ENV
-      - name: Clone Repository
-        uses: actions/checkout@v4
       - name: Clone mdn-bcd-collector
         uses: actions/checkout@v4
         with:
@@ -127,6 +108,23 @@ jobs:
         with:
           name: ${{ env.RESULT_FILENAME }}
           path: ${{ github.workspace }}/collector/download/${{ env.RESULT_FILENAME }}
+
+      - name: Download CSS properties JSON From W3
+        run: |
+          wget https://www.w3.org/Style/CSS/all-properties.en.json -O ./static/w3-all-properties.json
+
+      - name: Download Servo supported CSS properties
+        run: |
+          wget https://doc.servo.org/stylo/css-properties.json -O ./static/servo-css-properties.json
+
+      # Need another way of retrieving default Servo preference
+      # - name: Download Servo default prefs.json
+      #   run: |
+      #     wget https://raw.githubusercontent.com/servo/servo/refs/heads/main/resources/prefs.json -O ./static/servo-default-pref.json
+
+      - name: Download Google supported CSS properties
+        run: |
+          wget https://chromestatus.com/data/csspopularity -O ./static/google-css-popularity.json
 
       - uses: actions/setup-python@v5
         with:
