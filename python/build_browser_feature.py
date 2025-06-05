@@ -26,7 +26,7 @@ def read_json_file(file_path):
             grouped[group].append((name, result, exposure, url))
 
     # Generate Markdown output
-    md_lines = ["# API Compatibility Results\n"]
+    md_lines = []
 
     for group in sorted(grouped):
         md_lines.append(f"### `{group}` APIs {{#{group}}}\n")
