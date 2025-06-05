@@ -53,4 +53,4 @@ for (const [sectionName, sectionValue] of Object.entries(json) as [string, Secti
   md += '\n';
 }
 
-fs.appendFileSync('content/metrics/browser-feature-popularity.md', md, 'utf-8');
+fs.appendFileSync('content/metrics/browser-feature.md', md, 'utf-8');

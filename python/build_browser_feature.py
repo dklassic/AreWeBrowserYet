@@ -54,7 +54,7 @@ def read_json_file(file_path):
         md_lines.append("")  # Blank line between groups
 
     # Save output
-    with open("./content/metrics/browser-feature.md", "a", encoding="utf-8") as f:
+    with open("./content/metrics/browser-feature-full.md", "a", encoding="utf-8") as f:
         f.write("\n".join(md_lines))
 
 def get_url_from_bcd(api_path):

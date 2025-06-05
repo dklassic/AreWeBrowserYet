@@ -16,6 +16,8 @@ This simple page just loads and parse through the data and list out the supporte
 
 The project [mdn-bcd-collector](https://mdn-bcd-collector.gooborg.com/) provides a full host of testing suite to check the features supported by a browser. We will run the latest Servo commit to perform this test locally, then retrieve links to relevant specs with [mdn's browser-compat-data](https://github.com/mdn/browser-compat-data).
 
+The result is then compared against [chromestatus's web features list](https://chromestatus.com/metrics/webfeature/popularity) to rank it by popularity.
+
 
 ## Future Work
 
