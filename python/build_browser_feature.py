@@ -29,7 +29,7 @@ def read_json_file(file_path):
     md_lines = ["# API Compatibility Results\n"]
 
     for group in sorted(grouped):
-        md_lines.append(f"### `{group}` APIs\n")
+        md_lines.append(f"### `{group}` APIs {{#{group}}}\n")
         md_lines.append("| API Feature | Result | Exposure | Relevant Link |")
         md_lines.append("|-------------|--------|----------|---------------|")
 

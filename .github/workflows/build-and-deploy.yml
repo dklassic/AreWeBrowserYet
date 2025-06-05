@@ -11,7 +11,7 @@ on:
       - labeled
   schedule:
     # Re-deploy weekly to automatically track changes
-    - cron: '5 8 * * 6'
+    - cron: "5 8 * * 6"
   workflow_dispatch:
 permissions:
   contents: write
@@ -22,6 +22,9 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
       - name: Remove label from PR
         if: github.ref != 'refs/heads/main' && contains(github.event.pull_request.labels.*.name, 'preview-build')
         env:
@@ -40,37 +43,33 @@ jobs:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
             :hourglass_flowing_sand: Running build preview for PR.
-            
+
             <!-- workflow-preview-build-label -->
 
-
-      # Prepare MDN BCD collector
-      - name: Set LIBCLANG_PATH env
-        run: echo "LIBCLANG_PATH=/usr/lib/llvm-14/lib" >> $GITHUB_ENV
       - name: Clone mdn-bcd-collector
         uses: actions/checkout@v4
         with:
           repository: openwebdocs/mdn-bcd-collector
           submodules: true
           path: collector
-      - name: Clone Servo
-        uses: actions/checkout@v4
-        with:
-          repository: servo/servo
-          path: servo
+
       - name: Setup NodeJS
         uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          version: "0.5.6"
-      - name: Build Servo
+
+      - name: Install Servo binary required libraries
         run: |
-          cd servo
-          ./mach bootstrap
-          ./mach build
+          sudo apt-get update
+          sudo apt-get install -y libunwind-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev \
+          gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
+          gstreamer1.0-libav
+
+      - name: Download Servo binary and untar
+        run: |
+          wget -qO ./servo.tar.gz https://download.servo.org/nightly/linux/servo-latest.tar.gz
+          tar -xzvf ./servo.tar.gz
+
       - name: Run MDN bcd collector in background
         run: |
           cd collector
@@ -90,11 +89,12 @@ jobs:
           done
 
           echo "Server is up!"
-      - name: Run test and generate report
+
+      - name: Run BCD test and generate report
         run: |
           cd servo
           # Run the test in headless modeand save the output to a variable
-          OUTPUT=$(timeout 10m ./mach run http://localhost:5200/tests/ --headless --userscripts="${{ github.workspace }}/scripts/")
+          OUTPUT=$(timeout 10m ./servo http://localhost:5200/tests/ --headless --userscripts="${{ github.workspace }}/scripts/")
 
           # Extract the line with "RESULT_FILENAME:" and isolate the filename
           FILENAME=$(echo "$OUTPUT" | grep "RESULT_FILENAME:" | sed 's/RESULT_FILENAME: //')
@@ -103,11 +103,25 @@ jobs:
 
           # Save to environment for later steps
           echo "RESULT_FILENAME=$FILENAME" >> $GITHUB_ENV
-      - name: Upload artifacts
+
+      - name: Upload BCD test result artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.RESULT_FILENAME }}
           path: ${{ github.workspace }}/collector/download/${{ env.RESULT_FILENAME }}
+
+      - name: Generate popularity result
+        run: |
+          pnpm install
+          pnpm build
+          pnpm tag ${{ github.workspace }}/collector/download/${{ env.RESULT_FILENAME }}
+          pnpm to-md
+
+      - name: Upload popularity coverage artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: popularity-ranked-results
+          path: ${{ github.workspace }}/popularityBcdMap.json
 
       - name: Download CSS properties JSON From W3
         run: |
@@ -128,8 +142,8 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12' 
-          
+          python-version: "3.12"
+
       - name: Build CSS Page
         run: |
           python ./python/build_css.py
@@ -145,12 +159,14 @@ jobs:
         env:
           BUILD_ONLY: true
           BUILD_FLAGS: --drafts
+
       - name: Preview Pull Request
         if: github.ref != 'refs/heads/main' && contains(github.event.pull_request.labels.*.name, 'preview-build')
         uses: shalzz/zola-deploy-action@v0.20.0
         env:
           PAGES_BRANCH: pr-preview
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Update comment with completion status
         if: github.ref != 'refs/heads/main' && contains(github.event.pull_request.labels.*.name, 'preview-build')
         uses: peter-evans/create-or-update-comment@v4
@@ -160,6 +176,7 @@ jobs:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
             :white_check_mark: PR preview build completed at https://github.com/dklassic/AreWeBrowserYet/tree/pr-preview.
+
       - name: Build and deploy
         if: github.ref == 'refs/heads/main'
         uses: shalzz/zola-deploy-action@v0.20.0

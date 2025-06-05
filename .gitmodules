@@ -1,3 +1,6 @@
 [submodule "themes/duckquill"]
 	path = themes/duckquill
 	url = https://codeberg.org/daudix/duckquill
+[submodule "mdn/browser-compat-data"]
+	path = browser-compat-data
+	url = https://github.com/mdn/browser-compat-data.git
