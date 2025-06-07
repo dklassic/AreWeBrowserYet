@@ -1,6 +1,6 @@
 +++
 insert_anchor_links = "left"
-title = "Browser Feature Coverage"
+title = "Browser Feature Coverage By Popularity"
 +++
 
 This page will be automatically built every week showing the status of supported browser feature.

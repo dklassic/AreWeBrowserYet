@@ -1,6 +1,6 @@
 +++
 insert_anchor_links = "left"
-title = "Stylo CSS Popularity Coverage"
+title = "Stylo CSS Coverage By Popularity"
 +++
 
 This page will be automatically built every week showing the status of supported CSS features in [Stylo](https://github.com/servo/stylo), the styling system of Servo.
