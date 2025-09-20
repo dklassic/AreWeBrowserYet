@@ -94,7 +94,7 @@ jobs:
         run: |
           cd servo
           # Run the test in headless modeand save the output to a variable
-          OUTPUT=$(timeout 10m ./servo --enable-experimental-web-platform-features http://localhost:5200/tests/ --headless --userscripts="${{ github.workspace }}/scripts/")
+          OUTPUT=$(timeout 10m ./servo --enable-experimental-web-platform-features http://localhost:5200/tests/ --headless --userscripts_directory="${{ github.workspace }}/scripts/")
 
           # Extract the line with "RESULT_FILENAME:" and isolate the filename
           FILENAME=$(echo "$OUTPUT" | grep "RESULT_FILENAME:" | sed 's/RESULT_FILENAME: //')
