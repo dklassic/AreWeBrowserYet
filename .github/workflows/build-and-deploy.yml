@@ -67,7 +67,7 @@ jobs:
 
       - name: Download Servo binary and untar
         run: |
-          wget -qO ./servo.tar.gz https://download.servo.org/nightly/linux/servo-latest.tar.gz
+          wget -qO ./servo.tar.gz https://download.servo.org/nightly/linux/servo-x86_64-linux-gnu.tar.gz
           tar -xzvf ./servo.tar.gz
 
       - name: Run MDN bcd collector in background
