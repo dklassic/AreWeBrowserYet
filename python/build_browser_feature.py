@@ -36,18 +36,6 @@ def read_json_file(file_path):
         for name in sorted(grouped[group]):
             entries = grouped[group][name]
 
-            # Merge results: True if all true, False if all false, ⚠️ otherwise
-            all_results = [r for r, _ in entries]
-            if all(r is True for r in all_results):
-                icon = "✅"
-            elif all(r is False for r in all_results):
-                icon = "❌"
-            else:
-                icon = "⚠️"
-
-            # Combine exposures
-            exposures = ", ".join(sorted(set(e for _, e in entries)))
-
             bcd_url = get_url_from_bcd(name)
             spec_links = []
             if bcd_url and bcd_url[0]:
@@ -59,7 +47,12 @@ def read_json_file(file_path):
                 spec_links.append(f"[SPEC]({bcd_url[1]})")
             links = ", ".join(spec_links) if spec_links else "N/A"
 
-            md_lines.append(f"| `{name}` | {icon} | {exposures} | {links} |")
+            for idx, (result, exposure) in enumerate(entries):
+                icon = "✅" if result is True else "❌" if result is False else "⚠️"
+                # Only show the API name and links on the first row; leave blank on subsequent rows
+                display_name = f"`{name}`" if idx == 0 else ""
+                display_links = links if idx == 0 else ""
+                md_lines.append(f"| {display_name} | {icon} | {exposure} | {display_links} |")
 
         md_lines.append("")  # Blank line between groups
 
