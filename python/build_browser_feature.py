@@ -30,8 +30,8 @@ def read_json_file(file_path):
 
     for group in sorted(grouped):
         md_lines.append(f"### `{group}` APIs {{#{group}}}\n")
-        md_lines.append("| API Feature | Result | Exposure | Relevant Link |")
-        md_lines.append("|-------------|--------|----------|---------------|")
+        md_lines.append("| API Feature | Relevant Link | Exposure | Result |")
+        md_lines.append("|-------------|---------------|----------|--------|")
 
         for name in sorted(grouped[group]):
             entries = grouped[group][name]
@@ -52,7 +52,7 @@ def read_json_file(file_path):
                 # Only show the API name and links on the first row; leave blank on subsequent rows
                 display_name = f"`{name}`" if idx == 0 else ""
                 display_links = links if idx == 0 else ""
-                md_lines.append(f"| {display_name} | {icon} | {exposure} | {display_links} |")
+                md_lines.append(f"| {display_name} | {display_links} | {exposure} | {icon} |")
 
         md_lines.append("")  # Blank line between groups
 
