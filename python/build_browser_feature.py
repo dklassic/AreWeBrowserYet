@@ -10,8 +10,8 @@ def read_json_file(file_path):
     with open(file_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    # Organize test data by API group
-    grouped = defaultdict(list)
+    # Organize test data by API group, then by name
+    grouped = defaultdict(lambda: defaultdict(list))
     results = data.get("results", {})
 
     for url, tests in results.items():
@@ -23,33 +23,36 @@ def read_json_file(file_path):
             parts = name.split(".")
             group = parts[1] if len(parts) > 1 else "Misc"
 
-            grouped[group].append((name, result, exposure, url))
+            grouped[group][name].append((result, exposure))
 
     # Generate Markdown output
     md_lines = []
 
     for group in sorted(grouped):
         md_lines.append(f"### `{group}` APIs {{#{group}}}\n")
-        md_lines.append("| API Feature | Result | Exposure | Relevant Link |")
-        md_lines.append("|-------------|--------|----------|---------------|")
+        md_lines.append("| API Feature | Relevant Link | Exposure | Result |")
+        md_lines.append("|-------------|---------------|----------|--------|")
 
-        for name, result, exposure, url in grouped[group]:
-            icon = "✅" if result is True else "❌" if result is False else "⚠️"
+        for name in sorted(grouped[group]):
+            entries = grouped[group][name]
 
-            url = get_url_from_bcd(name)
+            bcd_url = get_url_from_bcd(name)
             spec_links = []
-            if url and url[0]:
-                spec_links.append(f"[MDN]({url[0]})")
-            if url and isinstance(url[1], list):
-                i = 0
-                for spec in url[1]:
+            if bcd_url and bcd_url[0]:
+                spec_links.append(f"[MDN]({bcd_url[0]})")
+            if bcd_url and isinstance(bcd_url[1], list):
+                for i, spec in enumerate(bcd_url[1]):
                     spec_links.append(f"[SPEC{i}]({spec})")
-                    i += 1
-            elif url and url[1]:
-                spec_links.append(f"[SPEC]({url[1]})")
-            links = ", ".join(spec_links) if len(spec_links) > 0 else "N/A"
+            elif bcd_url and bcd_url[1]:
+                spec_links.append(f"[SPEC]({bcd_url[1]})")
+            links = ", ".join(spec_links) if spec_links else "N/A"
 
-            md_lines.append(f"| `{name}` | {icon} | {exposure} | {links} |")
+            for idx, (result, exposure) in enumerate(entries):
+                icon = "✅" if result is True else "❌" if result is False else "⚠️"
+                # Only show the API name and links on the first row; leave blank on subsequent rows
+                display_name = f"`{name}`" if idx == 0 else ""
+                display_links = links if idx == 0 else ""
+                md_lines.append(f"| {display_name} | {display_links} | {exposure} | {icon} |")
 
         md_lines.append("")  # Blank line between groups
 
