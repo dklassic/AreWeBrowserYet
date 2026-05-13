@@ -1,0 +1,18 @@
+/* Table layout improvements for API feature tables */
+table {
+	table-layout: fixed;
+}
+
+table td:first-child,
+table th:first-child {
+	width: 40%;
+	word-break: break-word;
+	overflow-wrap: break-word;
+}
+
+table td code,
+table th code {
+	white-space: pre-wrap;
+	word-break: break-word;
+	overflow-wrap: break-word;
+}

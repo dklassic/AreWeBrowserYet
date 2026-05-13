@@ -75,10 +75,9 @@ source_url = "https://github.com/dklassic/AreWeBrowserYet"
 # Additional CSS styles; expects them to be in the "./static/" directory.
 # If you are using Sass it will be generated there automatically.
 #
-# styles = [
-#   "YOUR_STYLE.css",
-#   "ALSO_YOUR_STYLE.css"
-# ]
+styles = [
+  "custom.css",
+]
 #
 # Additional JavaScript scripts; expects them to be in the "./static/" directory.
 #
