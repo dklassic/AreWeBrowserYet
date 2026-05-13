@@ -148,6 +148,10 @@ jobs:
         run: |
           python ./python/build_css.py
 
+      - name: Copy BCD test result to static for download
+        run: |
+          cp ${{ github.workspace }}/collector/download/${{ env.RESULT_FILENAME }} ${{ github.workspace }}/static/bcd-test-results.json
+
       - name: Build MDN BCD Page
         run: |
           git clone https://github.com/mdn/browser-compat-data.git

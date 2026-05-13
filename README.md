@@ -25,6 +25,7 @@ Runs the [mdn-bcd-collector](https://mdn-bcd-collector.gooborg.com/) test suite 
 - Features are ranked by popularity data from ChromeStatus
 - Each feature links to its MDN documentation and relevant W3C/WHATWG specs
 - Results are broken down per execution context (Window, Worker, ServiceWorker, SharedWorker)
+- The raw BCD test result JSON is published at [`/bcd-test-results.json`](https://arewebrowseryet.com/bcd-test-results.json) each build
 
 ### Full API List (`/metrics/browser-feature-full`)
 
@@ -66,7 +67,7 @@ The GitHub Actions workflow (`.github/workflows/build-and-deploy.yml`) runs **ev
 1. Clones the `mdn-bcd-collector` repo and installs Servo's runtime dependencies
 2. Downloads the latest Servo nightly Linux binary
 3. Starts the BCD collector server locally and runs Servo headlessly against it
-4. Extracts the JSON test results and maps them to popularity-ranked web features
+4. Extracts the JSON test results, copies them to `static/bcd-test-results.json` for public download, and maps them to popularity-ranked web features
 5. Fetches CSS/spec data and runs the Python build scripts
 6. Builds and deploys the Zola site to GitHub Pages
 
@@ -106,6 +107,7 @@ The GitHub Actions workflow (`.github/workflows/build-and-deploy.yml`) runs **ev
 │   ├── feature-tag.ts            # Maps BCD results to web-features + popularity
 │   └── to_md.ts                  # Converts ranked data to markdown table
 ├── static/                       # Static assets + CNAME
+│   │                             # bcd-test-results.json published here each build
 ├── themes/duckquill/             # Zola theme submodule
 ├── config.toml                   # Zola site configuration
 └── package.json                  # Node.js scripts (build, tag, to-md)

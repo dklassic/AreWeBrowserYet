@@ -9,5 +9,7 @@ The data is generated using json file retreived by running latest Servo commit t
 
 The full test results can be accessed [here](@/metrics/browser-feature-full.md)
 
+The raw BCD test result JSON file can be downloaded [here](https://arewebrowseryet.com/bcd-test-results.json)
+
 # API Compatibility Results
 
