@@ -3,6 +3,11 @@ table {
 	table-layout: fixed;
 }
 
+table td,
+table th {
+	text-align: center;
+}
+
 table td:first-child,
 table th:first-child {
 	width: 40%;
