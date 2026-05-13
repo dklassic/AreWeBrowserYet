@@ -5,7 +5,5 @@ title = "Stylo CSS Coverage By Popularity"
 
 This page will be automatically built every week showing the status of supported CSS features in [Stylo](https://github.com/servo/stylo), the styling system of Servo.
 
-The data is generated using json file provided by [chromestatus](https://chromestatus.com/metrics/css/popularity#variable) which collects the most used css properties via Chrome's anonymous usage statistics, which will then be compared with [`Stylo`'s supported css properties](https://doc.servo.org/stylo/css-properties.html).
-
-Additional links to relevant specs are provided by [W3C](https://www.w3.org/Style/CSS/).
+The data cross-references three sources: CSS usage popularity from [ChromeStatus](https://chromestatus.com/metrics/css/popularity) anonymous usage statistics, [Stylo's supported CSS properties](https://doc.servo.org/stylo/css-properties.json), and W3C CSS property specs from [w3.org](https://www.w3.org/Style/CSS/all-properties.en.json). Each property is listed with its usage percentage, Servo support status (✅/⚠️/❌), and a link to the relevant W3C spec.
 
