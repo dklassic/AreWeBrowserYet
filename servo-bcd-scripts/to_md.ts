@@ -32,7 +32,8 @@ let md = '';
 
 for (const [sectionName, sectionValue] of Object.entries(json) as [string, Section][]) {
   if (!sectionValue || !sectionValue.day_percentage || !sectionValue.bcd_entries) continue;
-  md += `### ${sectionName} (${sectionValue.day_percentage})\n\n`;
+  const pct = (sectionValue.day_percentage * 100).toFixed(2) + '%';
+  md += `### ${sectionName} (${pct})\n\n`;
 
   const exposures = getAllExposures(sectionValue.bcd_entries);
   if (exposures.length === 0) {
