@@ -1,4 +1,5 @@
 import json
+from datetime import date
 from types import NoneType
 
 def read_json_file(file_path):
@@ -100,6 +101,7 @@ def main():
 # title = "Servo CSS Coverage"
 # +++
 # """)
+        file.write(f"_Last rebuilt: {date.today()}_\n\n")
         file.write(f"Servo supports {stat_element} of the properties that have a usage of over 5% (Not counting property support not enabled by default). While the total css property count is {len(correlated_data)}\n\n")
         file.write('Property | Usage | Supported by Servo | Relevant Spec\n')
         file.write('--- | --- | --- | ---\n')

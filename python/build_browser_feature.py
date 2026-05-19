@@ -1,5 +1,6 @@
 import json
 from collections import defaultdict
+from datetime import date
 import os
 import sys
 
@@ -58,6 +59,7 @@ def read_json_file(file_path):
 
     # Save output
     with open("./content/metrics/browser-feature-full.md", "a", encoding="utf-8") as f:
+        f.write(f"_Last rebuilt: {date.today()}_\n\n")
         f.write("\n".join(md_lines))
 
 def get_url_from_bcd(api_path):
