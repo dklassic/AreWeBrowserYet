@@ -29,7 +29,7 @@ function exposureCell(val: boolean | null | undefined): string {
 }
 
 const builtDate = new Date().toISOString().slice(0, 10);
-let md = `_Last rebuilt: ${builtDate}_\n\n`;
+let md = `_Last rebuilt: ${builtDate}_\n\n# API Compatibility Results\n\n`;
 
 for (const [sectionName, sectionValue] of Object.entries(json) as [string, Section][]) {
   if (!sectionValue || !sectionValue.day_percentage || !sectionValue.bcd_entries) continue;
