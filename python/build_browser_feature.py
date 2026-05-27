@@ -40,12 +40,12 @@ def read_json_file(file_path):
             bcd_url = get_url_from_bcd(name)
             spec_links = []
             if bcd_url and bcd_url[0]:
-                spec_links.append(f"[MDN]({bcd_url[0]})")
+                spec_links.append(f"[MDN](<{bcd_url[0]}>)")
             if bcd_url and isinstance(bcd_url[1], list):
                 for i, spec in enumerate(bcd_url[1]):
-                    spec_links.append(f"[SPEC{i}]({spec})")
+                    spec_links.append(f"[SPEC{i}](<{spec}>)")
             elif bcd_url and bcd_url[1]:
-                spec_links.append(f"[SPEC]({bcd_url[1]})")
+                spec_links.append(f"[SPEC](<{bcd_url[1]}>)")
             links = ", ".join(spec_links) if spec_links else "N/A"
 
             for idx, (result, exposure) in enumerate(entries):
