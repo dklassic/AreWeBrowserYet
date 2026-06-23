@@ -51,7 +51,7 @@ def read_json_file(file_path):
             for idx, (result, exposure) in enumerate(entries):
                 icon = "✅" if result is True else "❌" if result is False else "⚠️"
                 # Only show the API name and links on the first row; leave blank on subsequent rows
-                display_name = f"`{name}`" if idx == 0 else ""
+                display_name = f"{name}" if idx == 0 else ""
                 display_links = links if idx == 0 else ""
                 md_lines.append(f"| {display_name} | {display_links} | {exposure} | {icon} |")
 
