@@ -1,5 +1,7 @@
 // After mdn-bcd-collector's tests page is loaded, run the test.
 onload = () => {
+  disableSharedWorkerTests();
+
   // collector will generate a script based on the test environment settings.
   // We only need the parameters from the script and call the bcd.go function by ourselves.
   let run_str = document.getElementById('run').onclick.toString();
@@ -12,11 +14,31 @@ onload = () => {
 };
 
 async function onBcdTestComplete(results) {
-  await sendTestResults(results);
-  await exportReport();
+  try {
+    await sendTestResults(results);
+    await exportReport();
+  } finally {
+    // Close the window to terminate the servo process.
+    window.close();
+  }
+}
 
-  // Close the window to terminate the servo process.
-  window.close();
+function disableSharedWorkerTests() {
+  if (typeof SharedWorker !== 'function') {
+    return;
+  }
+
+  const NativeSharedWorker = SharedWorker;
+
+  // Servo's SharedWorker implementation keeps servoshell alive after the
+  // page closes. Make construction fail so the collector uses its built-in
+  // "No shared worker support" path instead of leaving CI running forever.
+  function DisabledSharedWorker() {
+    throw new TypeError('SharedWorker requires a single argument');
+  }
+
+  DisabledSharedWorker.prototype = NativeSharedWorker.prototype;
+  window.SharedWorker = DisabledSharedWorker;
 }
 
 function extractResourceCount(input) {
