@@ -1,6 +1,6 @@
 // After mdn-bcd-collector's tests page is loaded, run the test.
 onload = () => {
-  disableSharedWorkerTests();
+  installSelfClosingSharedWorker();
 
   // collector will generate a script based on the test environment settings.
   // We only need the parameters from the script and call the bcd.go function by ourselves.
@@ -23,22 +23,81 @@ async function onBcdTestComplete(results) {
   }
 }
 
-function disableSharedWorkerTests() {
+function installSelfClosingSharedWorker() {
   if (typeof SharedWorker !== 'function') {
     return;
   }
 
   const NativeSharedWorker = SharedWorker;
+  const closeMessage = '__close_bcd_shared_worker__';
+  const collectorWorkerURL = new URL(
+    '/resources/sharedworker.js',
+    location.href,
+  ).href;
+  const wrapperSource = `
+    const collectorWorkerURL = ${JSON.stringify(collectorWorkerURL)};
+    const closeMessage = ${JSON.stringify(closeMessage)};
+    const nativeImportScripts = self.importScripts;
 
-  // Servo's SharedWorker implementation keeps servoshell alive after the
-  // page closes. Make construction fail so the collector uses its built-in
-  // "No shared worker support" path instead of leaving CI running forever.
-  function DisabledSharedWorker() {
-    throw new TypeError('SharedWorker requires a single argument');
+    self.importScripts = function (...urls) {
+      const resolvedURLs = urls.map((url) =>
+        new URL(url, collectorWorkerURL).href
+      );
+      return nativeImportScripts.apply(self, resolvedURLs);
+    };
+
+    nativeImportScripts.call(self, collectorWorkerURL);
+
+    const collectorOnConnect = self.onconnect;
+    self.onconnect = function (event) {
+      collectorOnConnect.call(self, event);
+
+      const port = event.ports[0];
+      const collectorOnMessage = port.onmessage;
+      port.onmessage = function (messageEvent) {
+        if (messageEvent.data === closeMessage) {
+          port.close();
+          self.close();
+          return;
+        }
+
+        collectorOnMessage.call(port, messageEvent);
+      };
+    };
+  `;
+  const wrapperURL = URL.createObjectURL(
+    new Blob([wrapperSource], {type: 'text/javascript'}),
+  );
+
+  function SelfClosingSharedWorker(scriptURL, options) {
+    if (arguments.length === 0) {
+      // Servo currently creates a worker for a missing URL instead of throwing.
+      throw new TypeError('SharedWorker requires a single argument');
+    }
+
+    const resolvedURL = new URL(scriptURL, location.href).href;
+    const workerURL =
+      resolvedURL === collectorWorkerURL ? wrapperURL : scriptURL;
+    const worker =
+      arguments.length === 1
+        ? new NativeSharedWorker(workerURL)
+        : new NativeSharedWorker(workerURL, options);
+
+    if (resolvedURL === collectorWorkerURL) {
+      // Acknowledge receipt of the results so the worker can safely close.
+      const closeWorker = () => {
+        worker.port.removeEventListener('message', closeWorker);
+        worker.port.postMessage(closeMessage);
+      };
+      worker.port.addEventListener('message', closeWorker);
+    }
+
+    return worker;
   }
 
-  DisabledSharedWorker.prototype = NativeSharedWorker.prototype;
-  window.SharedWorker = DisabledSharedWorker;
+  Object.setPrototypeOf(SelfClosingSharedWorker, NativeSharedWorker);
+  SelfClosingSharedWorker.prototype = NativeSharedWorker.prototype;
+  window.SharedWorker = SelfClosingSharedWorker;
 }
 
 function extractResourceCount(input) {
