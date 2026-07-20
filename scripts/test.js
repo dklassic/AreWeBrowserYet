@@ -1,10 +1,24 @@
 // After mdn-bcd-collector's tests page is loaded, run the test.
 onload = () => {
+  const runButton = document.getElementById('run');
+  const testPageReady =
+    runButton &&
+    typeof runButton.onclick === 'function' &&
+    typeof bcd !== 'undefined' &&
+    typeof bcd.go === 'function';
+  if (!testPageReady) {
+    // The collector's dev server may restart after the workflow readiness
+    // check. Reload instead of leaving servoshell idle on its error page.
+    console.warn('BCD test page is not ready; retrying...');
+    setTimeout(() => location.reload(), 1000);
+    return;
+  }
+
   installSelfClosingSharedWorker();
 
   // collector will generate a script based on the test environment settings.
   // We only need the parameters from the script and call the bcd.go function by ourselves.
-  let run_str = document.getElementById('run').onclick.toString();
+  let run_str = runButton.onclick.toString();
   const resourceCount = extractResourceCount(run_str);
 
   bcd.go(onBcdTestComplete, resourceCount, true, {
