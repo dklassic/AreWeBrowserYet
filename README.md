@@ -60,6 +60,19 @@ python/build_css.py + python/build_browser_feature.py
 Zola static site → GitHub Pages
 ```
 
+### BCD Test Userscript (`scripts/test.js`)
+
+`scripts/test.js` is injected into Servo by the `--userscripts` option when CI opens the mdn-bcd-collector test page. It automates the browser-side portion of the BCD run; it is not the project's `npm test` entry point.
+
+After the collector page loads, the script:
+
+1. Checks that the collector's Run button and `bcd.go()` API are ready. If the collector development server restarted after CI's readiness check, it reloads the page after one second and tries again.
+2. Wraps the collector's `SharedWorker`, when Servo supports it, so the worker acknowledges the submitted results and then closes. The wrapper also resolves the worker's relative `importScripts()` URLs against the original collector worker URL. This prevents the worker from keeping headless Servo alive after the run.
+3. Reads the generated resource count from the Run button's handler and calls `bcd.go()` directly, identifying the test browser as Servo.
+4. Posts the completed results to the collector's `/api/results` endpoint, then requests `/export` so the collector writes the JSON report under `collector/download/`.
+5. Logs the exported name as `RESULT_FILENAME: <filename>`. The GitHub Actions workflow extracts this marker to find, upload, process, and publish the report.
+6. Closes the browser window in a `finally` block so the headless Servo process terminates even if submission or export fails.
+
 ### Automation
 
 The GitHub Actions workflow (`.github/workflows/build-and-deploy.yml`) runs **every Saturday at 08:05 UTC**, on push to `main`, and on demand. It:
