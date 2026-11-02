@@ -48,40 +48,11 @@ function installSelfClosingSharedWorker() {
     '/resources/sharedworker.js',
     location.href,
   ).href;
-  const wrapperSource = `
-    const collectorWorkerURL = ${JSON.stringify(collectorWorkerURL)};
-    const closeMessage = ${JSON.stringify(closeMessage)};
-    const nativeImportScripts = self.importScripts;
-
-    self.importScripts = function (...urls) {
-      const resolvedURLs = urls.map((url) =>
-        new URL(url, collectorWorkerURL).href
-      );
-      return nativeImportScripts.apply(self, resolvedURLs);
-    };
-
-    nativeImportScripts.call(self, collectorWorkerURL);
-
-    const collectorOnConnect = self.onconnect;
-    self.onconnect = function (event) {
-      collectorOnConnect.call(self, event);
-
-      const port = event.ports[0];
-      const collectorOnMessage = port.onmessage;
-      port.onmessage = function (messageEvent) {
-        if (messageEvent.data === closeMessage) {
-          port.close();
-          self.close();
-          return;
-        }
-
-        collectorOnMessage.call(port, messageEvent);
-      };
-    };
-  `;
-  const wrapperURL = URL.createObjectURL(
-    new Blob([wrapperSource], {type: 'text/javascript'}),
-  );
+  // Serve the wrapper from the collector origin so its CSP permits the worker.
+  const wrapperURL = new URL(
+    '/resources/servo-sharedworker.js',
+    location.href,
+  ).href;
 
   function SelfClosingSharedWorker(scriptURL, options) {
     if (arguments.length === 0) {
