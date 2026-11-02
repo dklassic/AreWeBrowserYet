@@ -72,6 +72,7 @@ jobs:
 
       - name: Run MDN bcd collector in background
         run: |
+          cp collector-resources/servo-sharedworker.js collector/static/resources/
           cd collector
           npm ci
           nohup npm run dev &
@@ -93,16 +94,27 @@ jobs:
       - name: Run BCD test and generate report
         run: |
           cd servo
-          # Run the test in headless modeand save the output to a variable
-          OUTPUT=$(timeout 10m ./servoshell http://localhost:5200/tests/ --pref dom_webgpu_enabled --headless --userscripts="${{ github.workspace }}/scripts/")
+          # Keep output visible and preserve Servo/timeout failures through tee.
+          set -o pipefail
+          timeout 10m ./servoshell http://localhost:5200/tests/ --pref dom_webgpu_enabled --headless --userscripts="${{ github.workspace }}/scripts/" 2>&1 | tee servo.log
 
-          # Extract the line with "RESULT_FILENAME:" and isolate the filename
-          FILENAME=$(echo "$OUTPUT" | grep "RESULT_FILENAME:" | sed 's/RESULT_FILENAME: //')
+          # Extract the line with "RESULT_FILENAME:" and isolate the filename.
+          FILENAME=$(grep "RESULT_FILENAME:" servo.log | sed 's/RESULT_FILENAME: //')
+          test -n "$FILENAME"
+          test -f "../collector/download/$FILENAME"
 
           echo "Result filename: $FILENAME"
 
           # Save to environment for later steps
           echo "RESULT_FILENAME=$FILENAME" >> $GITHUB_ENV
+
+      - name: Upload Servo log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: servo-log
+          path: servo/servo.log
+          if-no-files-found: ignore
 
       - name: Upload BCD test result artifacts
         uses: actions/upload-artifact@v4

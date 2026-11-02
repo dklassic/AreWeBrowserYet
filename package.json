@@ -8,7 +8,7 @@
     "build": "tsc",
     "tag": "node dist/feature-tag.js",
     "to-md": "node dist/to_md.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test tests/*.test.js"
   },
   "author": "",
   "license": "ISC",
